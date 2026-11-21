@@ -1,0 +1,49 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Registrar Cliente - BarberGest</title>
+</head>
+<body>
+
+    <h1>BarberGest</h1>
+    <h2>Registrar nuevo cliente</h2>
+
+    <form action="clientes" method="post">
+
+        <label for="nombre">Nombre:</label>
+        <input
+            type="text"
+            id="nombre"
+            name="nombre"
+            required
+        >
+
+        <br><br>
+
+        <label for="telefono">Teléfono:</label>
+        <input
+            type="tel"
+            id="telefono"
+            name="telefono"
+            required
+        >
+
+        <br><br>
+
+        <button type="submit">
+            Registrar cliente
+        </button>
+
+    </form>
+
+    <br>
+
+    <a href="index.jsp">Volver al inicio</a>
+
+</body>
+</html>

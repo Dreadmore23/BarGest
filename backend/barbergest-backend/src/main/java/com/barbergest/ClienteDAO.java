@@ -5,6 +5,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ClienteDAO {
     //READ - Consultar cliente
@@ -40,32 +42,68 @@ public class ClienteDAO {
             );
         }
     }
-    //CREATE - Registrar cliente
-    public void registrarCliente(String nombre, String telefono) {
 
-        String sql = "INSERT INTO cliente (nombre, telefono) VALUES (?, ?)";
+    // READ - Obtener clientes para mostrar en la página web
+    public List<Cliente> obtenerClientes() throws SQLException {
+
+        List<Cliente> clientes = new ArrayList<>();
+
+        String sql = "SELECT id_cliente, nombre, telefono FROM cliente";
 
         try (
             Connection conexion = ConexionBD.conectar();
-            PreparedStatement consulta = conexion.prepareStatement(sql)
+            PreparedStatement consulta = conexion.prepareStatement(sql);
+            ResultSet resultado = consulta.executeQuery()
         ) {
 
-            consulta.setString(1, nombre);
-            consulta.setString(2, telefono);
+            while (resultado.next()) {
 
-            int filasAfectadas = consulta.executeUpdate();
+                int id = resultado.getInt("id_cliente");
+                String nombre = resultado.getString("nombre");
+                String telefono = resultado.getString("telefono");
 
-            if (filasAfectadas > 0) {
-                System.out.println("Cliente registrado correctamente.");
+                Cliente cliente = new Cliente(id, nombre, telefono);
+
+                clientes.add(cliente);
             }
-
-        } catch (SQLException e) {
-
-            System.out.println(
-                "Error al registrar cliente: " + e.getMessage()
-            );
         }
+
+        return clientes;
     }
+
+    //CREATE - Registrar cliente
+    
+public boolean registrarCliente(String nombre, String telefono) {
+
+    String sql = "INSERT INTO cliente (nombre, telefono) VALUES (?, ?)";
+
+    try (
+        Connection conexion = ConexionBD.conectar();
+        PreparedStatement consulta = conexion.prepareStatement(sql)
+    ) {
+
+        consulta.setString(1, nombre);
+        consulta.setString(2, telefono);
+
+        int filasAfectadas = consulta.executeUpdate();
+
+        if (filasAfectadas > 0) {
+            System.out.println("Cliente registrado correctamente.");
+            return true;
+        }
+
+        return false;
+
+    } catch (SQLException e) {
+
+        System.out.println(
+            "Error al registrar cliente: " + e.getMessage()
+        );
+
+        return false;
+    }
+}
+
     //UPDATE - Actualizar cliente 
     public void actualizarCliente(int id, String nombre, String telefono) {
 

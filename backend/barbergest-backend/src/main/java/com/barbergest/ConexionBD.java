@@ -15,12 +15,25 @@ public class ConexionBD {
         String usuario = System.getenv("BARBERGEST_DB_USER");
         String contrasena = System.getenv("BARBERGEST_DB_PASSWORD");
 
+        // Verificar las variables de entorno
         if (usuario == null || contrasena == null) {
             throw new SQLException(
                 "Faltan las variables de entorno de MySQL."
             );
         }
 
+        // Cargar el controlador JDBC de MySQL
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+        } catch (ClassNotFoundException e) {
+            throw new SQLException(
+                "No se encontró el controlador JDBC de MySQL.",
+                e
+            );
+        }
+
+        // Establecer la conexión con MySQL
         return DriverManager.getConnection(
             URL, usuario, contrasena
         );

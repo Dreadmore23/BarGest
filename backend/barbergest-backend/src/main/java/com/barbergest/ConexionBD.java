@@ -2,6 +2,8 @@
 package com.barbergest;
 
 import java.sql.Connection;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.AbstractDataSource;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
@@ -37,5 +39,20 @@ public class ConexionBD {
         return DriverManager.getConnection(
             URL, usuario, contrasena
         );
+    }
+    // Spring JDBC reutiliza la conexión existente y administra sus recursos.
+    public static JdbcTemplate obtenerJdbcTemplate() {
+        return new JdbcTemplate(new AbstractDataSource() {
+            @Override
+            public Connection getConnection() throws SQLException {
+                return conectar();
+            }
+
+            @Override
+            public Connection getConnection(String usuario, String contrasena)
+                    throws SQLException {
+                return conectar();
+            }
+        });
     }
 }

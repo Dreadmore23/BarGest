@@ -1,163 +1,106 @@
 
 package com.barbergest;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.CallableStatementCallback;
+import org.springframework.dao.DataAccessException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ClienteDAO {
+
+    private final JdbcTemplate jdbcTemplate = ConexionBD.obtenerJdbcTemplate();
     //READ - Consultar cliente
     public void listarClientes() {
-
-        String sql = "SELECT id_cliente, nombre, telefono FROM cliente";
-
-        try (
-            Connection conexion = ConexionBD.conectar();
-            PreparedStatement consulta = conexion.prepareStatement(sql);
-            ResultSet resultado = consulta.executeQuery()
-        ) {
-
-            System.out.println("=== LISTA DE CLIENTES ===");
-
-            while (resultado.next()) {
-
-                int id = resultado.getInt("id_cliente");
-                String nombre = resultado.getString("nombre");
-                String telefono = resultado.getString("telefono");
-
-                System.out.println(
-                    "ID: " + id +
-                    " | Nombre: " + nombre +
-                    " | Telefono: " + telefono
-                );
-            }
-
-        } catch (SQLException e) {
-
-            System.out.println(
-                "Error al consultar clientes: " + e.getMessage()
-            );
+        // Consulta los registros mediante un procedimiento almacenado.
+        try {
+            jdbcTemplate.execute("{CALL listar_clientes()}",
+                (CallableStatementCallback<Void>) consulta -> {
+                    try (ResultSet resultado = consulta.executeQuery()) {
+                        System.out.println("=== LISTA DE CLIENTES ===");
+                        while (resultado.next()) {
+                            System.out.println("id_cliente: " + resultado.getString("id_cliente") + " | " + "nombre: " + resultado.getString("nombre") + " | " + "telefono: " + resultado.getString("telefono"));
+                        }
+                    }
+                    return null;
+                });
+        } catch (DataAccessException e) {
+            System.out.println("Error al consultar: " + e.getMessage());
         }
     }
 
     // READ - Obtener clientes para mostrar en la página web
     public List<Cliente> obtenerClientes() throws SQLException {
-
-        List<Cliente> clientes = new ArrayList<>();
-
-        String sql = "SELECT id_cliente, nombre, telefono FROM cliente";
-
-        try (
-            Connection conexion = ConexionBD.conectar();
-            PreparedStatement consulta = conexion.prepareStatement(sql);
-            ResultSet resultado = consulta.executeQuery()
-        ) {
-
-            while (resultado.next()) {
-
-                int id = resultado.getInt("id_cliente");
-                String nombre = resultado.getString("nombre");
-                String telefono = resultado.getString("telefono");
-
-                Cliente cliente = new Cliente(id, nombre, telefono);
-
-                clientes.add(cliente);
-            }
+        // Convierte el resultado del procedimiento en objetos para el Servlet.
+        try {
+            return jdbcTemplate.execute("{CALL listar_clientes()}",
+                (CallableStatementCallback<List<Cliente>>) consulta -> {
+                    List<Cliente> clientes = new ArrayList<>();
+                    try (ResultSet resultado = consulta.executeQuery()) {
+                        while (resultado.next()) {
+                            clientes.add(new Cliente(resultado.getInt("id_cliente"),
+                                resultado.getString("nombre"), resultado.getString("telefono")));
+                        }
+                    }
+                    return clientes;
+                });
+        } catch (DataAccessException e) {
+            throw new SQLException("Error al consultar clientes", e);
         }
-
-        return clientes;
     }
 
     //CREATE - Registrar cliente
     
 public boolean registrarCliente(String nombre, String telefono) {
-
-    String sql = "INSERT INTO cliente (nombre, telefono) VALUES (?, ?)";
-
-    try (
-        Connection conexion = ConexionBD.conectar();
-        PreparedStatement consulta = conexion.prepareStatement(sql)
-    ) {
-
-        consulta.setString(1, nombre);
-        consulta.setString(2, telefono);
-
-        int filasAfectadas = consulta.executeUpdate();
-
-        if (filasAfectadas > 0) {
-            System.out.println("Cliente registrado correctamente.");
-            return true;
+        // Spring prepara la llamada y libera los recursos JDBC al finalizar.
+        try {
+            int filas = jdbcTemplate.execute("{CALL registrar_cliente(?, ?)}",
+                (CallableStatementCallback<Integer>) consulta -> {
+                    // Los parámetros siguen el orden declarado en MySQL.
+                    consulta.setString(1, nombre);
+                    consulta.setString(2, telefono);
+                    return consulta.executeUpdate();
+                });
+            System.out.println(filas > 0 ? "registrarCliente: operación correcta." : "registrarCliente: sin filas afectadas.");
+            return filas > 0;
+        } catch (DataAccessException | IllegalArgumentException e) {
+            System.out.println("Error en registrarCliente: " + e.getMessage());
+            return false;
         }
-
-        return false;
-
-    } catch (SQLException e) {
-
-        System.out.println(
-            "Error al registrar cliente: " + e.getMessage()
-        );
-
-        return false;
     }
-}
 
     //UPDATE - Actualizar cliente 
     public void actualizarCliente(int id, String nombre, String telefono) {
-
-        String sql = "UPDATE cliente SET nombre = ?, telefono = ? WHERE id_cliente = ?";
-
-        try (
-            Connection conexion = ConexionBD.conectar();
-            PreparedStatement consulta = conexion.prepareStatement(sql)
-        ) {
-
-            consulta.setString(1, nombre);
-            consulta.setString(2, telefono);
-            consulta.setInt(3, id);
-
-            int filasAfectadas = consulta.executeUpdate();
-
-            if (filasAfectadas > 0) {
-                System.out.println("Cliente actualizado correctamente.");
-            } else {
-                System.out.println("No se encontro un cliente con ese ID.");
-            }
-
-        } catch (SQLException e) {
-
-            System.out.println(
-                "Error al actualizar cliente: " + e.getMessage()
-            );
+        // Spring prepara la llamada y libera los recursos JDBC al finalizar.
+        try {
+            int filas = jdbcTemplate.execute("{CALL actualizar_cliente(?, ?, ?)}",
+                (CallableStatementCallback<Integer>) consulta -> {
+                    // Los parámetros siguen el orden declarado en MySQL.
+                    consulta.setInt(1, id);
+                    consulta.setString(2, nombre);
+                    consulta.setString(3, telefono);
+                    return consulta.executeUpdate();
+                });
+            System.out.println(filas > 0 ? "actualizarCliente: operación correcta." : "actualizarCliente: sin filas afectadas.");
+        } catch (DataAccessException | IllegalArgumentException e) {
+            System.out.println("Error en actualizarCliente: " + e.getMessage());
         }
     }
     //DELETE - Eliminar cliente
     public void eliminarCliente(int id) {
-
-    String sql = "DELETE FROM cliente WHERE id_cliente = ?";
-
-        try (
-            Connection conexion = ConexionBD.conectar();
-            PreparedStatement consulta = conexion.prepareStatement(sql)
-        ) {
-
-            consulta.setInt(1, id);
-
-            int filasAfectadas = consulta.executeUpdate();
-
-            if (filasAfectadas > 0) {
-                System.out.println("Cliente eliminado correctamente.");
-            } else {
-                System.out.println("No se encontro un cliente con ese ID.");
-            }
-
-        } catch (SQLException e) {
-
-            System.out.println(
-                "Error al eliminar cliente: " + e.getMessage()
-            );
+        // Spring prepara la llamada y libera los recursos JDBC al finalizar.
+        try {
+            int filas = jdbcTemplate.execute("{CALL eliminar_cliente(?)}",
+                (CallableStatementCallback<Integer>) consulta -> {
+                    // Los parámetros siguen el orden declarado en MySQL.
+                    consulta.setInt(1, id);
+                    return consulta.executeUpdate();
+                });
+            System.out.println(filas > 0 ? "eliminarCliente: operación correcta." : "eliminarCliente: sin filas afectadas.");
+        } catch (DataAccessException | IllegalArgumentException e) {
+            System.out.println("Error en eliminarCliente: " + e.getMessage());
         }
     }
 

@@ -21,6 +21,12 @@
     </properties>
 
     <dependencies>
+        <!-- Framework Spring JDBC para ejecutar procedimientos almacenados -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jdbc</artifactId>
+            <version>6.2.15</version>
+        </dependency>
 
         <!-- Conexión JDBC con MySQL -->
         <dependency>

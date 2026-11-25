@@ -1,116 +1,83 @@
 
 package com.barbergest;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.CallableStatementCallback;
+import org.springframework.dao.DataAccessException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class BarberoDAO {
 
+    private final JdbcTemplate jdbcTemplate = ConexionBD.obtenerJdbcTemplate();
+
     // READ - Consultar barberos
     public void listarBarberos() {
-
-        String sql = "SELECT id_barbero, nombre, telefono FROM barbero";
-
-        try (
-            Connection conexion = ConexionBD.conectar();
-            PreparedStatement consulta = conexion.prepareStatement(sql);
-            ResultSet resultado = consulta.executeQuery()
-        ) {
-
-            System.out.println("=== LISTA DE BARBEROS ===");
-
-            while (resultado.next()) {
-                int id = resultado.getInt("id_barbero");
-                String nombre = resultado.getString("nombre");
-                String telefono = resultado.getString("telefono");
-
-                System.out.println(
-                    "ID: " + id +
-                    " | Nombre: " + nombre +
-                    " | Telefono: " + telefono
-                );
-            }
-
-        } catch (SQLException e) {
-            System.out.println("Error: " + e.getMessage());
+        // Consulta los registros mediante un procedimiento almacenado.
+        try {
+            jdbcTemplate.execute("{CALL listar_barberos()}",
+                (CallableStatementCallback<Void>) consulta -> {
+                    try (ResultSet resultado = consulta.executeQuery()) {
+                        System.out.println("=== LISTA DE BARBEROS ===");
+                        while (resultado.next()) {
+                            System.out.println("id_barbero: " + resultado.getString("id_barbero") + " | " + "nombre: " + resultado.getString("nombre") + " | " + "telefono: " + resultado.getString("telefono"));
+                        }
+                    }
+                    return null;
+                });
+        } catch (DataAccessException e) {
+            System.out.println("Error al consultar: " + e.getMessage());
         }
     }
 
     // CREATE - Registrar barbero
     public void registrarBarbero(String nombre, String telefono) {
-
-        String sql = "INSERT INTO barbero (nombre, telefono) VALUES (?, ?)";
-
-        try (
-            Connection conexion = ConexionBD.conectar();
-            PreparedStatement consulta = conexion.prepareStatement(sql)
-        ) {
-
-            consulta.setString(1, nombre);
-            consulta.setString(2, telefono);
-
-            int filas = consulta.executeUpdate();
-
-            if (filas > 0) {
-                System.out.println("Barbero registrado correctamente.");
-            }
-
-        } catch (SQLException e) {
-            System.out.println("Error: " + e.getMessage());
+        // Spring prepara la llamada y libera los recursos JDBC al finalizar.
+        try {
+            int filas = jdbcTemplate.execute("{CALL registrar_barbero(?, ?)}",
+                (CallableStatementCallback<Integer>) consulta -> {
+                    // Los parámetros siguen el orden declarado en MySQL.
+                    consulta.setString(1, nombre);
+                    consulta.setString(2, telefono);
+                    return consulta.executeUpdate();
+                });
+            System.out.println(filas > 0 ? "registrarBarbero: operación correcta." : "registrarBarbero: sin filas afectadas.");
+        } catch (DataAccessException | IllegalArgumentException e) {
+            System.out.println("Error en registrarBarbero: " + e.getMessage());
         }
     }
 
     // UPDATE - Actualizar barbero
     public void actualizarBarbero(int id, String nombre, String telefono) {
-
-        String sql = "UPDATE barbero SET nombre = ?, telefono = ? WHERE id_barbero = ?";
-
-        try (
-            Connection conexion = ConexionBD.conectar();
-            PreparedStatement consulta = conexion.prepareStatement(sql)
-        ) {
-
-            consulta.setString(1, nombre);
-            consulta.setString(2, telefono);
-            consulta.setInt(3, id);
-
-            int filas = consulta.executeUpdate();
-
-            if (filas > 0) {
-                System.out.println("Barbero actualizado correctamente.");
-            } else {
-                System.out.println("Barbero no encontrado.");
-            }
-
-        } catch (SQLException e) {
-            System.out.println("Error: " + e.getMessage());
+        // Spring prepara la llamada y libera los recursos JDBC al finalizar.
+        try {
+            int filas = jdbcTemplate.execute("{CALL actualizar_barbero(?, ?, ?)}",
+                (CallableStatementCallback<Integer>) consulta -> {
+                    // Los parámetros siguen el orden declarado en MySQL.
+                    consulta.setInt(1, id);
+                    consulta.setString(2, nombre);
+                    consulta.setString(3, telefono);
+                    return consulta.executeUpdate();
+                });
+            System.out.println(filas > 0 ? "actualizarBarbero: operación correcta." : "actualizarBarbero: sin filas afectadas.");
+        } catch (DataAccessException | IllegalArgumentException e) {
+            System.out.println("Error en actualizarBarbero: " + e.getMessage());
         }
     }
 
     // DELETE - Eliminar barbero
     public void eliminarBarbero(int id) {
-
-        String sql = "DELETE FROM barbero WHERE id_barbero = ?";
-
-        try (
-            Connection conexion = ConexionBD.conectar();
-            PreparedStatement consulta = conexion.prepareStatement(sql)
-        ) {
-
-            consulta.setInt(1, id);
-
-            int filas = consulta.executeUpdate();
-
-            if (filas > 0) {
-                System.out.println("Barbero eliminado correctamente.");
-            } else {
-                System.out.println("Barbero no encontrado.");
-            }
-
-        } catch (SQLException e) {
-            System.out.println("Error: " + e.getMessage());
+        // Spring prepara la llamada y libera los recursos JDBC al finalizar.
+        try {
+            int filas = jdbcTemplate.execute("{CALL eliminar_barbero(?)}",
+                (CallableStatementCallback<Integer>) consulta -> {
+                    // Los parámetros siguen el orden declarado en MySQL.
+                    consulta.setInt(1, id);
+                    return consulta.executeUpdate();
+                });
+            System.out.println(filas > 0 ? "eliminarBarbero: operación correcta." : "eliminarBarbero: sin filas afectadas.");
+        } catch (DataAccessException | IllegalArgumentException e) {
+            System.out.println("Error en eliminarBarbero: " + e.getMessage());
         }
     }
 }

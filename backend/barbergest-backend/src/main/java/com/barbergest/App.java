@@ -20,16 +20,16 @@ public class App {
             ClienteDAO clienteDAO = new ClienteDAO();
 
             // CREATE
-            // clienteDAO.registrarCliente("Pedro Gomez", "3105551234");
+            // clienteDAO.registrarCliente("Prueba Spring JDBC", "3000000000");
 
             // READ
             clienteDAO.listarClientes();
 
             // UPDATE
-            // clienteDAO.actualizarCliente(2, "Pedro Gomez", "3009876543");
+            // clienteDAO.actualizarCliente(6, "Cliente Spring Actualizado", "3111111111");
 
             // DELETE
-            // clienteDAO.eliminarCliente(3);
+            // clienteDAO.eliminarCliente(6);
 
 
             // ==================================
@@ -39,18 +39,16 @@ public class App {
             BarberoDAO barberoDAO = new BarberoDAO();
 
             // CREATE
-            // barberoDAO.registrarBarbero("Barbero Prueba", "3000000000");
+            // barberoDAO.registrarBarbero("Barbero Prueba Spring", "3000000001");
 
             // READ
             barberoDAO.listarBarberos();
 
             // UPDATE
-            // barberoDAO.actualizarBarbero(
-            //     3, "Barbero Actualizado", "3111111111"
-            // );
+            // barberoDAO.actualizarBarbero(4, "Barbero Spring Actualizado", "3111111112");
 
             // DELETE
-            // barberoDAO.eliminarBarbero(3);
+            // barberoDAO.eliminarBarbero(4);
 
 
             // ==================================
@@ -60,24 +58,19 @@ public class App {
             CitaDAO citaDAO = new CitaDAO();
 
             // CREATE
-            // citaDAO.registrarCita(
-            //     2, 2, 2, "2026-11-15", "10:00:00"
-            // );
+            // citaDAO.registrarCita(1, 1, 1, "2026-12-01", "10:00:00");
 
             // READ
             citaDAO.listarCitas();
 
             // UPDATE
-            // citaDAO.actualizarCita(
-            //     2, 2, 2, 2,
-            //     "2026-11-15", "11:00:00", "PROGRAMADA"
-            // );
+            // citaDAO.actualizarCita(5, 1, 1, 1, "2026-12-01", "14:00:00", "PROGRAMADA");
 
             // CANCELAR
-            // citaDAO.cancelarCita(2);
+            // citaDAO.cancelarCita(3);
 
             // DELETE
-            // citaDAO.eliminarCita(2);
+            // citaDAO.eliminarCita(5);
 
 
             // ==================================
@@ -87,27 +80,16 @@ public class App {
             ServicioDAO servicioDAO = new ServicioDAO();
 
             // CREATE - Servicio temporal
-            // servicioDAO.registrarServicio(
-            //     "Servicio Prueba",
-            //     "Servicio creado para probar el CRUD",
-            //     35,
-            //     18000.00
-            // );
+            // servicioDAO.registrarServicio("Servicio Prueba Spring", "Servicio de prueba", 30, 18000.00);
 
             // READ
             servicioDAO.listarServicios();
 
             // UPDATE - Sustituir ID por el generado en CREATE
-            // servicioDAO.actualizarServicio(
-            //     4,
-            //     "Servicio Prueba Actualizado",
-            //     "Descripcion actualizada",
-            //     45,
-            //     20000.00
-            // );
+            // servicioDAO.actualizarServicio(5, "Servicio Spring Actualizado", "Descripcion actualizada", 40, 22000.00);
 
             // DELETE - Sustituir ID por el generado en CREATE
-            // servicioDAO.eliminarServicio(4);
+            // servicioDAO.eliminarServicio(5);
 
         } finally {
 
